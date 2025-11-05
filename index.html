@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>동진안전점검</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #21808d;
+            --color-primary-hover: #1d7480;
+            --color-background: #fcfcf9;
+            --color-surface: #fffffe;
+            --color-text: #133435;
+            --color-text-secondary: #626c71;
+            --color-border: rgba(94, 82, 64, 0.2);
+            --color-success: #21808d;
+            --color-warning: #e68161;
+            --color-error: #c0152f;
+            --color-card-border: rgba(94, 82, 64, 0.12);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-background: #1f2121;
+                --color-surface: #262828;
+                --color-text: #f5f5f5;
+                --color-text-secondary: rgba(167, 169, 169, 0.7);
+                --color-border: rgba(119, 124, 124, 0.3);
+                --color-card-border: rgba(119, 124, 124, 0.2);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text);
+            padding: 16px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background-color: var(--color-surface);
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--color-card-border);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-img {
+            width: 80px;
+            height: auto;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: var(--color-text);
+            flex: 1;
+        }
+
+        .info-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .info-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text);
+        }
+
+        input, textarea {
+            padding: 14px 16px;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 15px;
+            background-color: var(--color-surface);
+            color: var(--color-text);
+            min-height: 60px;
+        }
+
+        input:focus, textarea:focus {
+            outline: 2px solid var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .category {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .category-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--color-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checklist-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-text {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .status-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .status-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            background-color: var(--color-surface);
+            color: var(--color-text);
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .status-btn:hover {
+            background-color: var(--color-border);
+        }
+
+        .status-btn.active-good {
+            background-color: var(--color-success);
+            color: white;
+            border-color: var(--color-success);
+        }
+
+        .status-btn.active-poor {
+            background-color: var(--color-warning);
+            color: white;
+            border-color: var(--color-warning);
+        }
+
+        .status-btn.active-bad {
+            background-color: var(--color-error);
+            color: white;
+            border-color: var(--color-error);
+        }
+
+        .memo-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .memo-input {
+            width: 100%;
+            min-height: 60px;
+            margin-top: 8px;
+        }
+
+        .action-buttons {
+            position: sticky;
+            bottom: 0;
+            background-color: var(--color-background);
+            padding: 16px 0;
+            display: flex;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--color-surface);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+        }
+
+        .summary {
+            background-color: var(--color-surface);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--color-card-border);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+
+        .summary-label {
+            color: var(--color-text-secondary);
+        }
+
+        .summary-value {
+            font-weight: 600;
+        }
+
+        .signature-section {
+            background-color: var(--color-surface);
+            padding: 24px;
+            border-radius: 12px;
+            margin-top: 30px;
+            border: 1px solid var(--color-card-border);
+        }
+
+        .signature-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--color-text);
+        }
+
+        .signature-box {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .signature-field {
+            text-align: center;
+        }
+
+        .signature-label {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 40px;
+            color: var(--color-text-secondary);
+        }
+
+        .signature-line {
+            border-top: 2px solid var(--color-text);
+            margin-top: 10px;
+            padding-top: 8px;
+        }
+
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+            page-break-before: always;
+        }
+
+        @media print {
+            .action-buttons {
+                display: none;
+            }
+            
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+                page-break-inside: auto;
+            }
+            
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://i.imgur.com/zAIv4BC.png" alt="동진로고" class="logo-img" />
+            <h1>🏗️ 동진안전점검</h1>
+        </div>
+        <div class="header">
+            <div class="info-form">
+                <div class="form-group">
+                    <label>현장명</label>
+                    <input type="text" id="siteName" placeholder="예: OO아파트 신축공사">
+                </div>
+                <div class="form-group">
+                    <label>점검일자</label>
+                    <input type="date" id="inspectionDate">
+                </div>
+                <div class="form-group">
+                    <label>점검자</label>
+                    <input type="text" id="inspector" placeholder="이름 및 소속">
+                </div>
+            </div>
+        </div>
+
+        <div class="summary" id="summary">
+            <div class="summary-row">
+                <span class="summary-label">전체 항목</span>
+                <span class="summary-value" id="totalItems">0</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">양호</span>
+                <span class="summary-value" style="color: var(--color-success)" id="goodCount">0</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">미흡</span>
+                <span class="summary-value" style="color: var(--color-warning)" id="poorCount">0</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">불량</span>
+                <span class="summary-value" style="color: var(--color-error)" id="badCount">0</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">점검률</span>
+                <span class="summary-value" id="completionRate">0%</span>
+            </div>
+        </div>
+
+        <div id="checklistContainer"></div>
+
+        <div class="category" id="photoSection">
+            <div class="category-title">
+                📷 사진 대지
+            </div>
+            <div style="margin-bottom: 16px;">
+                <input type="file" id="photoAttachment" accept="image/*" capture="environment" multiple style="padding: 10px; font-size: 14px; border: 1px solid var(--color-border); border-radius: 8px; background-color: var(--color-surface);">
+            </div>
+            <div id="photoGallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;"></div>
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-title">서명</div>
+            <div class="signature-box">
+                <div class="signature-field">
+                    <div class="signature-label">확인자</div>
+                    <div class="signature-line"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-secondary" onclick="resetForm()">초기화</button>
+            <button class="btn btn-primary" onclick="generatePDF()">PDF 저장</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        const checklistData = [
+            {
+                category: '1. 일반안전관리',
+                icon: '📋',
+                items: [
+                    '작업허가서 및 안전작업계획서 작성 여부',
+                    '근로자 안전교육 실시 여부 (신규/일일)',
+                    '안전보호구 지급 및 착용 상태',
+                    '작업장 정리정돈 상태',
+                    '통로 및 작업구역 장애물 확인',
+                    '안전표지판 설치 상태'
+                ]
+            },
+            {
+                category: '2. 추락재해 예방',
+                icon: '⚠️',
+                items: [
+                    '안전난간 설치 상태 (높이 90cm 이상)',
+                    '추락방호망 설치 및 고정 상태',
+                    '개구부 덮개 설치 및 표시',
+                    '안전대 부착설비 설치 상태',
+                    '사다리 고정 및 파손 여부',
+                    '작업발판 미끄럼 방지 조치'
+                ]
+            },
+            {
+                category: '3. 흙막이 지보공',
+                icon: '🏗️',
+                items: [
+                    '흙막이 벽체 변위 측정 및 관리기준 준수',
+                    '버팀대(스트럿) 축력 측정 및 이상 유무',
+                    '띠장(웨일) 볼트 체결 상태 및 풀림 여부',
+                    '지보공 부재 균열, 변형, 부식 상태',
+                    '배수시설 작동 상태 및 지하수위 관리',
+                    '계측기 설치 및 일일 계측 실시 여부'
+                ]
+            },
+            {
+                category: '4. 중장비 및 차량',
+                icon: '🚜',
+                items: [
+                    '크레인 안전장치 작동 여부',
+                    '신호수 배치 및 유도 상태',
+                    '중장비 작업반경 출입통제',
+                    '차량 출입로 안전통로 확보',
+                    '속도제한 표지 설치',
+                    '중장비 일일점검 기록'
+                ]
+            },
+            {
+                category: '5. 전기안전',
+                icon: '⚡',
+                items: [
+                    '누전차단기 설치 및 작동 상태',
+                    '전기배선 파손 및 노출 여부',
+                    '접지 시설 설치 상태',
+                    '임시전기 안전조치 상태',
+                    '전기작업 감전방지 조치',
+                    '전기기계기구 외함 접지'
+                ]
+            },
+            {
+                category: '6. 화재 및 소방',
+                icon: '🔥',
+                items: [
+                    '소화기 배치 및 충전 상태',
+                    '화기작업 불꽃비산 방지조치',
+                    '인화성 물질 보관 상태',
+                    '용접 작업시 감시자 배치',
+                    '비상대피로 확보 상태',
+                    '소방시설 점검 기록'
+                ]
+            },
+            {
+                category: '7. 굴착작업',
+                icon: '🕳️',
+                items: [
+                    '굴착면 기울기 및 단 쌓기 준수 (1:0.5~1:1.5)',
+                    '굴착 깊이 2m 이상시 토압검토 및 지보공 설치',
+                    '굴착면 붕괴위험 균열, 함수 상태 점검',
+                    '굴착 주변 구조물 및 시설물 안전성 확인',
+                    '지하매설물 탐지 및 안전조치',
+                    '굴착구역 안전펜스 및 추락방지 조치'
+                ]
+            },
+            {
+                category: '8. 근로자 건강관리',
+                icon: '💊',
+                items: [
+                    '온열질환 예방조치 (하절기)',
+                    '방한조치 실시 (동절기)',
+                    '식수 및 휴게시설 확보',
+                    '유해물질 작업시 보호구 착용',
+                    '근골격계 질환 예방 활동',
+                    '건강검진 실시 여부'
+                ]
+            },
+            {
+                category: '9. 기타사항',
+                icon: '📝',
+                items: [
+                    '기타 특이사항'
+                ]
+            }
+        ];
+
+        let checklistState = {};
+        let photoGalleryData = [];
+
+        function handleGalleryPhotoUpload(input) {
+            const files = input.files;
+            if (!files || files.length === 0) return;
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const maxWidth = 1200;
+                        const maxHeight = 1200;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        const photoId = `photo-${Date.now()}-${Math.random()}`;
+                        
+                        photoGalleryData.push({
+                            id: photoId,
+                            data: compressedDataUrl,
+                            description: ''
+                        });
+                        
+                        renderPhotoGallery();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            input.value = '';
+        }
+
+        function renderPhotoGallery() {
+            const gallery = document.getElementById('photoGallery');
+            gallery.innerHTML = '';
+            
+            photoGalleryData.forEach((photo, index) => {
+                const photoItem = document.createElement('div');
+                photoItem.style = 'border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden; background-color: var(--color-surface); page-break-inside: avoid;';
+                photoItem.innerHTML = `
+                    <div style="position: relative;">
+                        <img src="${photo.data}" style="width: 100%; height: 200px; object-fit: cover; display: block;">
+                        <button onclick="removeGalleryPhoto('${photo.id}')" style="position: absolute; top: 8px; right: 8px; background: var(--color-error); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 16px; font-weight: bold;">×</button>
+                    </div>
+                    <div style="padding: 12px;">
+                        <textarea id="desc-${photo.id}" placeholder="사진 설명" style="width: 100%; min-height: 60px; padding: 8px; border: 1px solid var(--color-border); border-radius: 6px; font-size: 13px; resize: vertical; background-color: var(--color-surface); color: var(--color-text);">${photo.description}</textarea>
+                    </div>
+                `;
+                gallery.appendChild(photoItem);
+            });
+        }
+
+        function removeGalleryPhoto(photoId) {
+            photoGalleryData = photoGalleryData.filter(p => p.id !== photoId);
+            renderPhotoGallery();
+        }
+
+        function initChecklist() {
+            const container = document.getElementById('checklistContainer');
+            let totalItems = 0;
+
+            checklistData.forEach((category, catIndex) => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                
+                const categoryTitle = document.createElement('div');
+                categoryTitle.className = 'category-title';
+                categoryTitle.innerHTML = `${category.icon} ${category.category}`;
+                categoryDiv.appendChild(categoryTitle);
+
+                category.items.forEach((item, itemIndex) => {
+                    const itemId = `item-${catIndex}-${itemIndex}`;
+                    totalItems++;
+                    
+                    checklistState[itemId] = {
+                        text: item,
+                        status: null,
+                        memo: ''
+                    };
+
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'checklist-item';
+                    
+                    const itemText = document.createElement('div');
+                    itemText.className = 'item-text';
+                    itemText.textContent = item;
+                    
+                    const statusButtons = document.createElement('div');
+                    statusButtons.className = 'status-buttons';
+                    
+                    ['양호', '미흡', '불량'].forEach(status => {
+                        const btn = document.createElement('button');
+                        btn.className = 'status-btn';
+                        btn.textContent = status;
+                        btn.onclick = () => setStatus(itemId, status, btn);
+                        statusButtons.appendChild(btn);
+                    });
+                    
+                    itemDiv.appendChild(itemText);
+                    itemDiv.appendChild(statusButtons);
+                    categoryDiv.appendChild(itemDiv);
+
+                    const memoSection = document.createElement('div');
+                    memoSection.className = 'memo-section';
+                    // 9번 기타사항은 항상 표시
+                    memoSection.style.display = catIndex === 8 ? 'block' : 'none';
+                    memoSection.innerHTML = `
+                        <label style="font-size: 12px; color: var(--color-text-secondary)">특이사항 메모</label>
+                        <textarea class="memo-input" id="memo-${itemId}" placeholder="조치사항, 담당자, 기타 특이사항 기록"></textarea>
+                    `;
+                    categoryDiv.appendChild(memoSection);
+                });
+
+                container.appendChild(categoryDiv);
+            });
+
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('inspectionDate').value = today;
+            
+            // 사진 대지 이벤트 리스너
+            document.getElementById('photoAttachment').addEventListener('change', function() {
+                handleGalleryPhotoUpload(this);
+            });
+        }
+
+        function setStatus(itemId, status, clickedBtn) {
+            checklistState[itemId].status = status;
+            
+            const buttons = clickedBtn.parentElement.querySelectorAll('.status-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active-good', 'active-poor', 'active-bad');
+            });
+            
+            if (status === '양호') {
+                clickedBtn.classList.add('active-good');
+            } else if (status === '미흡') {
+                clickedBtn.classList.add('active-poor');
+            } else if (status === '불량') {
+                clickedBtn.classList.add('active-bad');
+            }
+            
+            const memoSection = clickedBtn.closest('.category').querySelector(`#memo-${itemId}`).closest('.memo-section');
+            // 9번 기타사항은 항상 표시, 나머지는 미흡/불량일 때만 표시
+            const categoryElement = clickedBtn.closest('.category');
+            const isOtherCategory = categoryElement.querySelector('.category-title').textContent.includes('9. 기타사항');
+            
+            if (isOtherCategory || status === '미흡' || status === '불량') {
+                memoSection.style.display = 'block';
+            } else {
+                memoSection.style.display = 'none';
+            }
+            
+            updateSummary();
+        }
+
+        function updateSummary() {
+            // 요약 기능 제거됨
+        }
+
+        function resetForm() {
+            if (!confirm('모든 점검 내용을 초기화하시겠습니까?')) return;
+            
+            document.getElementById('siteName').value = '';
+            document.getElementById('inspector').value = '';
+            
+            document.querySelectorAll('.status-btn').forEach(btn => {
+                btn.classList.remove('active-good', 'active-poor', 'active-bad');
+            });
+            
+            document.querySelectorAll('.memo-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            document.querySelectorAll('.memo-input').forEach(input => {
+                input.value = '';
+            });
+            
+            Object.keys(checklistState).forEach(key => {
+                checklistState[key].status = null;
+                checklistState[key].memo = '';
+            });
+            
+            updateSummary();
+        }
+
+        async function generatePDF() {
+            const siteName = document.getElementById('siteName').value;
+            const inspectionDate = document.getElementById('inspectionDate').value;
+            const inspector = document.getElementById('inspector').value;
+
+            if (!siteName || !inspector) {
+                alert('현장명과 점검자를 입력해주세요.');
+                return;
+            }
+
+            Object.keys(checklistState).forEach(itemId => {
+                const memoElement = document.getElementById(`memo-${itemId}`);
+                if (memoElement) {
+                    checklistState[itemId].memo = memoElement.value;
+                }
+            });
+
+            // 사진 대지 설명 저장
+            photoGalleryData.forEach(photo => {
+                const descElement = document.getElementById(`desc-${photo.id}`);
+                if (descElement) {
+                    photo.description = descElement.value;
+                }
+            });
+
+            try {
+                // 액션 버튼 임시 숨김
+                const actionButtons = document.querySelector('.action-buttons');
+                const originalDisplay = actionButtons.style.display;
+                actionButtons.style.display = 'none';
+
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+
+                // 전체 컨테이너를 html2canvas로 캡처
+                const container = document.querySelector('.container');
+                const canvas = await html2canvas(container, {
+                    scale: 2,
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    windowWidth: container.scrollWidth,
+                    windowHeight: container.scrollHeight
+                });
+
+                // 액션 버튼 복원
+                actionButtons.style.display = originalDisplay;
+
+                const imgData = canvas.toDataURL('image/jpeg', 0.85);
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                const imgProps = pdf.getImageProperties(imgData);
+                const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
+
+                const margin = 5; // 페이지 여백
+                const contentWidth = pageWidth - (margin * 2);
+                const contentHeight = (imgProps.height * contentWidth) / imgProps.width;
+
+                let heightLeft = contentHeight;
+                let position = 0;
+
+                // 첫 페이지
+                pdf.addImage(imgData, 'JPEG', margin, position + margin, contentWidth, contentHeight);
+                heightLeft -= (pageHeight - margin * 2);
+
+                // 추가 페이지들
+                while (heightLeft > 0) {
+                    position = heightLeft - contentHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'JPEG', margin, position + margin, contentWidth, contentHeight);
+                    heightLeft -= (pageHeight - margin * 2);
+                }
+
+                const fileName = `동진안전점검_${siteName}_${inspectionDate}.pdf`;
+                pdf.save(fileName);
+
+                alert('PDF가 성공적으로 저장되었습니다!');
+            } catch (error) {
+                console.error('PDF generation error:', error);
+                alert('PDF 생성 중 오류가 발생했습니다: ' + error.message);
+                
+                // 오류 발생시에도 버튼 복원
+                const actionButtons = document.querySelector('.action-buttons');
+                if (actionButtons) {
+                    actionButtons.style.display = 'flex';
+                }
+            }
+        }
+
+        initChecklist();
+    </script>
+</body>
+</html>
