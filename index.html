@@ -296,26 +296,9 @@
             padding-top: 8px;
         }
 
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-        }
-
-            page-break-before: always;
-        }
-
         @media print {
             .action-buttons {
                 display: none;
-            }
-            
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 16px;
-                page-break-inside: auto;
-            }
-            
-                page-break-inside: avoid;
-                break-inside: avoid;
             }
         }
     </style>
@@ -629,7 +612,6 @@
 
                     const memoSection = document.createElement('div');
                     memoSection.className = 'memo-section';
-                    // 9번 기타사항은 항상 표시
                     memoSection.style.display = catIndex === 8 ? 'block' : 'none';
                     memoSection.innerHTML = `
                         <label style="font-size: 12px; color: var(--color-text-secondary)">특이사항 메모</label>
@@ -644,7 +626,6 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('inspectionDate').value = today;
             
-            // 사진 대지 이벤트 리스너
             document.getElementById('photoAttachment').addEventListener('change', function() {
                 handleGalleryPhotoUpload(this);
             });
@@ -667,7 +648,6 @@
             }
             
             const memoSection = clickedBtn.closest('.category').querySelector(`#memo-${itemId}`).closest('.memo-section');
-            // 9번 기타사항은 항상 표시, 나머지는 미흡/불량일 때만 표시
             const categoryElement = clickedBtn.closest('.category');
             const isOtherCategory = categoryElement.querySelector('.category-title').textContent.includes('9. 기타사항');
             
@@ -727,7 +707,6 @@
                 }
             });
 
-            // 사진 대지 설명 저장
             photoGalleryData.forEach(photo => {
                 const descElement = document.getElementById(`desc-${photo.id}`);
                 if (descElement) {
@@ -736,7 +715,6 @@
             });
 
             try {
-                // 액션 버튼 임시 숨김
                 const actionButtons = document.querySelector('.action-buttons');
                 const originalDisplay = actionButtons.style.display;
                 actionButtons.style.display = 'none';
@@ -744,7 +722,6 @@
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
 
-                // 전체 컨테이너를 html2canvas로 캡처
                 const container = document.querySelector('.container');
                 const canvas = await html2canvas(container, {
                     scale: 2,
@@ -756,7 +733,6 @@
                     windowHeight: container.scrollHeight
                 });
 
-                // 액션 버튼 복원
                 actionButtons.style.display = originalDisplay;
 
                 const imgData = canvas.toDataURL('image/jpeg', 0.85);
@@ -765,18 +741,16 @@
                 const imgProps = pdf.getImageProperties(imgData);
                 const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
 
-                const margin = 5; // 페이지 여백
+                const margin = 5;
                 const contentWidth = pageWidth - (margin * 2);
                 const contentHeight = (imgProps.height * contentWidth) / imgProps.width;
 
                 let heightLeft = contentHeight;
                 let position = 0;
 
-                // 첫 페이지
                 pdf.addImage(imgData, 'JPEG', margin, position + margin, contentWidth, contentHeight);
                 heightLeft -= (pageHeight - margin * 2);
 
-                // 추가 페이지들
                 while (heightLeft > 0) {
                     position = heightLeft - contentHeight;
                     pdf.addPage();
@@ -785,14 +759,31 @@
                 }
 
                 const fileName = `동진안전점검_${siteName}_${inspectionDate}.pdf`;
-                pdf.save(fileName);
+                
+                // 모바일 기기 감지
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                
+                if (isMobile) {
+                    // 모바일: 새 탭에서 열기
+                    const pdfBlob = pdf.output('blob');
+                    const blobUrl = URL.createObjectURL(pdfBlob);
+                    
+                    alert('PDF가 새 탭에서 열립니다.\n화면 상단의 공유 버튼(↑) 또는 다운로드 버튼을 눌러 저장하세요.');
+                    
+                    window.open(blobUrl, '_blank');
+                    
+                    // 메모리 정리 (10초 후)
+                    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+                } else {
+                    // PC: 기존 다운로드 방식
+                    pdf.save(fileName);
+                    alert('PDF가 성공적으로 저장되었습니다!');
+                }
 
-                alert('PDF가 성공적으로 저장되었습니다!');
             } catch (error) {
                 console.error('PDF generation error:', error);
                 alert('PDF 생성 중 오류가 발생했습니다: ' + error.message);
                 
-                // 오류 발생시에도 버튼 복원
                 const actionButtons = document.querySelector('.action-buttons');
                 if (actionButtons) {
                     actionButtons.style.display = 'flex';
@@ -801,6 +792,3 @@
         }
 
         initChecklist();
-    </script>
-</body>
-</html>
