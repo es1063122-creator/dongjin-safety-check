@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>동진안전점검</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -296,26 +295,9 @@
             padding-top: 8px;
         }
 
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-        }
-
-            page-break-before: always;
-        }
-
         @media print {
             .action-buttons {
                 display: none;
-            }
-            
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 16px;
-                page-break-inside: auto;
-            }
-            
-                page-break-inside: avoid;
-                break-inside: avoid;
             }
         }
     </style>
@@ -563,7 +545,7 @@
             
             photoGalleryData.forEach((photo, index) => {
                 const photoItem = document.createElement('div');
-                photoItem.style = 'border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden; background-color: var(--color-surface); page-break-inside: avoid;';
+                photoItem.style = 'border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden; background-color: var(--color-surface);';
                 photoItem.innerHTML = `
                     <div style="position: relative;">
                         <img src="${photo.data}" style="width: 100%; height: 200px; object-fit: cover; display: block;">
@@ -629,7 +611,6 @@
 
                     const memoSection = document.createElement('div');
                     memoSection.className = 'memo-section';
-                    // 9번 기타사항은 항상 표시
                     memoSection.style.display = catIndex === 8 ? 'block' : 'none';
                     memoSection.innerHTML = `
                         <label style="font-size: 12px; color: var(--color-text-secondary)">특이사항 메모</label>
@@ -644,10 +625,11 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('inspectionDate').value = today;
             
-            // 사진 대지 이벤트 리스너
             document.getElementById('photoAttachment').addEventListener('change', function() {
                 handleGalleryPhotoUpload(this);
             });
+            
+            updateSummary();
         }
 
         function setStatus(itemId, status, clickedBtn) {
@@ -667,7 +649,6 @@
             }
             
             const memoSection = clickedBtn.closest('.category').querySelector(`#memo-${itemId}`).closest('.memo-section');
-            // 9번 기타사항은 항상 표시, 나머지는 미흡/불량일 때만 표시
             const categoryElement = clickedBtn.closest('.category');
             const isOtherCategory = categoryElement.querySelector('.category-title').textContent.includes('9. 기타사항');
             
@@ -681,7 +662,29 @@
         }
 
         function updateSummary() {
-            // 요약 기능 제거됨
+            let total = 0;
+            let good = 0;
+            let poor = 0;
+            let bad = 0;
+            let checked = 0;
+
+            Object.keys(checklistState).forEach(key => {
+                total++;
+                const status = checklistState[key].status;
+                if (status) {
+                    checked++;
+                    if (status === '양호') good++;
+                    else if (status === '미흡') poor++;
+                    else if (status === '불량') bad++;
+                }
+            });
+
+            document.getElementById('totalItems').textContent = total;
+            document.getElementById('goodCount').textContent = good;
+            document.getElementById('poorCount').textContent = poor;
+            document.getElementById('badCount').textContent = bad;
+            document.getElementById('completionRate').textContent = 
+                total > 0 ? Math.round((checked / total) * 100) + '%' : '0%';
         }
 
         function resetForm() {
@@ -695,7 +698,9 @@
             });
             
             document.querySelectorAll('.memo-section').forEach(section => {
-                section.style.display = 'none';
+                const categoryElement = section.closest('.category');
+                const isOtherCategory = categoryElement && categoryElement.querySelector('.category-title').textContent.includes('9. 기타사항');
+                section.style.display = isOtherCategory ? 'block' : 'none';
             });
             
             document.querySelectorAll('.memo-input').forEach(input => {
@@ -727,7 +732,6 @@
                 }
             });
 
-            // 사진 대지 설명 저장
             photoGalleryData.forEach(photo => {
                 const descElement = document.getElementById(`desc-${photo.id}`);
                 if (descElement) {
@@ -736,7 +740,6 @@
             });
 
             try {
-                // 액션 버튼 임시 숨김
                 const actionButtons = document.querySelector('.action-buttons');
                 const originalDisplay = actionButtons.style.display;
                 actionButtons.style.display = 'none';
@@ -744,7 +747,6 @@
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
 
-                // 전체 컨테이너를 html2canvas로 캡처
                 const container = document.querySelector('.container');
                 const canvas = await html2canvas(container, {
                     scale: 2,
@@ -756,27 +758,23 @@
                     windowHeight: container.scrollHeight
                 });
 
-                // 액션 버튼 복원
                 actionButtons.style.display = originalDisplay;
 
                 const imgData = canvas.toDataURL('image/jpeg', 0.85);
                 const pageWidth = pdf.internal.pageSize.getWidth();
                 const pageHeight = pdf.internal.pageSize.getHeight();
                 const imgProps = pdf.getImageProperties(imgData);
-                const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
 
-                const margin = 5; // 페이지 여백
+                const margin = 5;
                 const contentWidth = pageWidth - (margin * 2);
                 const contentHeight = (imgProps.height * contentWidth) / imgProps.width;
 
                 let heightLeft = contentHeight;
                 let position = 0;
 
-                // 첫 페이지
                 pdf.addImage(imgData, 'JPEG', margin, position + margin, contentWidth, contentHeight);
                 heightLeft -= (pageHeight - margin * 2);
 
-                // 추가 페이지들
                 while (heightLeft > 0) {
                     position = heightLeft - contentHeight;
                     pdf.addPage();
@@ -785,14 +783,27 @@
                 }
 
                 const fileName = `동진안전점검_${siteName}_${inspectionDate}.pdf`;
-                pdf.save(fileName);
+                
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                
+                if (isMobile) {
+                    const pdfBlob = pdf.output('blob');
+                    const blobUrl = URL.createObjectURL(pdfBlob);
+                    
+                    alert('PDF가 새 탭에서 열립니다.\n화면 상단의 공유 버튼(↑) 또는 다운로드 버튼을 눌러 저장하세요.');
+                    
+                    window.open(blobUrl, '_blank');
+                    
+                    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+                } else {
+                    pdf.save(fileName);
+                    alert('PDF가 성공적으로 저장되었습니다!');
+                }
 
-                alert('PDF가 성공적으로 저장되었습니다!');
             } catch (error) {
                 console.error('PDF generation error:', error);
                 alert('PDF 생성 중 오류가 발생했습니다: ' + error.message);
                 
-                // 오류 발생시에도 버튼 복원
                 const actionButtons = document.querySelector('.action-buttons');
                 if (actionButtons) {
                     actionButtons.style.display = 'flex';
@@ -800,8 +811,10 @@
             }
         }
 
-        initChecklist();
+        // 페이지 로드 시 초기화
+        window.addEventListener('DOMContentLoaded', function() {
+            initChecklist();
+        });
     </script>
 </body>
-
 </html>
